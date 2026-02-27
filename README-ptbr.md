@@ -26,25 +26,22 @@ O projeto consiste em um script principal (`php-load-monitor.sh`) que extrai inf
 
 ## 🔧 Instalação e Uso
 
-1. **Clone o repositório:**
+1. **Baixe o arquivo no servidor:**
 
 ```bash
-git clone https://github.com/sr00t3d/php-load-monitor.git
-cd php-load-monitor
+curl -O https://raw.githubusercontent.com/sr00t3d/php-load-monitor/refs/heads/main/php-load-monitor.sh
 ```
 
-2. **Dê permissão de execução ao script:**
+2. **Dê permissão de execução:**
 
 ```bash
 chmod +x php-load-monitor.sh
 ```
 
-3. **Execução:**
-
-Execute o script:
+3. **Execute o script:**
 
 ```bash
-bash php-load-monitor.sh EMAIL TOTAL 
+./php-load-monitor.sh EMAIL TOTAL 
 ```
 
 Exemplo:

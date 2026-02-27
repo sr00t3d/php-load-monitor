@@ -26,25 +26,22 @@ The project consists of a main script (`php-load-monitor.sh`) that extracts vita
 
 ## 🔧 Installation and Usage
 
-1. **Clone the repository:**
+1. **Download the file to the server:**
 
 ```bash
-git clone https://github.com/sr00t3d/php-load-monitor.git
-cd php-load-monitor
+curl -O https://raw.githubusercontent.com/sr00t3d/php-load-monitor/refs/heads/main/php-load-monitor.sh
 ```
 
-2. **Grant execution permission to the script:**
+2. **Give execution permission:**
 
 ```bash
 chmod +x php-load-monitor.sh
 ```
 
-3. **Execution:**
-
-Execute script:
+3. **Execute the script:**
 
 ```bash
-bash php-load-monitor.sh MAIL TOTAL 
+./php-load-monitor.sh MAIL TOTAL
 ```
 
 Example:
