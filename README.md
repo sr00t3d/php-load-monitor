@@ -1,6 +1,6 @@
 # PHP Load Monitor 📊
 
-Readme: [English](README.md)
+Readme: [Português](README.md)
 
 ![License](https://img.shields.io/github/license/sr00t3d/cpanel-reseller-usage)
 ![Shell Script](https://img.shields.io/badge/shell-script-green)
