@@ -1,10 +1,16 @@
-#!/bin/bash
-# -------------------------------------------------------------------------------
-# Script: php_load_monitor.sh
-# Version: 1.1
-# Description: Monitors the server for a specific number of iterations (default 60)
-#              to identify high CPU usage caused by PHP processes.
-# -------------------------------------------------------------------------------
+#!/usr/bin/env bash
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║                                                                           ║
+# ║   PHP Load Monitor v1.0.0                                                 ║
+# ║                                                                           ║
+# ╠═══════════════════════════════════════════════════════════════════════════╣
+# ║   Autor:   Percio Castelo                                                 ║
+# ║   Contato: percio@evolya.com.br | contato@perciocastelo.com.br            ║
+# ║   Web:     https://perciocastelo.com.br                                   ║
+# ║                                                                           ║
+# ║   Função:  Monitors the server for a specific number of iterations        ║
+# ║            to identify high CPU usage caused by PHP processes.            ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
 
 EMAIL=$1
 OUTFILE="monitor_report.txt"
