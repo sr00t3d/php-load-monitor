@@ -44,7 +44,7 @@ chmod +x php-load-monitor.sh
 Execute script:
 
 ```bash
-bash php-load-monitor.sh EMAIL TOTAL 
+bash php-load-monitor.sh MAIL TOTAL 
 ```
 
 Example:
