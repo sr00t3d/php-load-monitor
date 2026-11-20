@@ -83,6 +83,31 @@ Output & Alerting Options:
 ./php-load-monitor.sh -n 10 -i 0.5 -o csv -f /tmp/php-load.csv
 ```
 
+## Real Output Example
+
+```text
+======================================================================================================
+ PHP LOAD MONITOR v2.0.0 - [cpanel-test.local] [172.20.0.2]
+======================================================================================================
+ Report Date : 2026-11-19 22:49:47 -03
+ CPU / Load  : 6 cores | Load Average: 0.26, 0.22, 0.22
+ Memory RAM  : 3079 MB / 11688 MB (26.3% used, 8609 MB available)
+ Sampling    : 3 snapshot(s) x 0.5s | Sort: cpu | Filters: CPU>=0.0% MEM>=0.0%
+======================================================================================================
+
+--- TOP PHP PROCESSES (AGGREGATED ACROSS 3 SNAPSHOTS) ---
+PID      | USER           | HITS  | AVG%CPU | MAX%CPU | MAX RSS  | ELAPSED     | COMMAND
+------------------------------------------------------------------------------------------------------
+20957    | root           |     3 |    75.8 |   101.0 |   23.8MB | 00:02       | /opt/cpanel/ea-php82/root/usr/bin/php -r $t...
+20958    | root           |     3 |     8.3 |    10.0 |   23.9MB | 00:02       | /opt/cpanel/ea-php82/root/usr/bin/php -r sl...
+
+--- RESOURCE SUMMARY BY USER ---
+USER             | UNIQUE PID | SAMPLES    | PEAK %CPU  | PEAK RSS  
+----------------------------------------------------------------------
+root             |          2 |          6 |     101.0% |    23.9 MB
+======================================================================================================
+```
+
 ## Detailed Tutorial
 
 Read the full walkthrough: [**Fast Check PHP Load**](https://perciocastelo.com.br/blog/fast-check-load-php.html)
