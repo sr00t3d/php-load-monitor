@@ -1,116 +1,97 @@
-# PHP Load Monitor 📊
+# PHP Load Monitor
 
 Readme: [EN](README.md)
 
-![License](https://img.shields.io/github/license/sr00t3d/php-load-monitor)
-![Shell Script](https://img.shields.io/badge/shell-script-green)
+![License](https://img.shields.io/github/license/sr00t3d/php-load-monitor) ![Shell Script](https://img.shields.io/badge/language-Bash-green.svg)
 
-<img width="700" src="php-load-monitor-cover.webp" />
+<img width="700" alt="PHP Load Monitor" src="php-load-monitor-cover.webp" />
 
-Um script minimalista e eficiente para monitorar a carga do sistema (Load Average) e o uso de memória RAM em tempo real, combinando a agilidade do Shell Script com a facilidade de exibição do PHP.
+Uma ferramenta de diagnóstico em Bash moderna e sem dependências pesadas para SysAdmins Linux e equipes de hospedagem (cPanel/WHM, DirectAdmin, HestiaPanel ou servidores dedicados) monitorarem processos PHP (`php-fpm`, `lsphp`, `php-cgi`, `ea-php*`, `alt-php*`, `sw-engine`, CLI), Load Average e consumo de RAM em múltiplos snapshots, identificando rapidamente os maiores ofensores de CPU e memória.
 
-## 🚀 Como funciona
+## Funcionalidades (v2.0.0)
 
-O projeto consiste em um script principal (`php-load-monitor.sh`) que extrai informações vitais do sistema operacional e as formata para exibição. Ele é ideal para verificações rápidas de performance sem a necessidade de instalar ferramentas complexas de monitoramento ou bancos de dados.
+* **Detecção Universal de Motores PHP:** Identifica automaticamente `php-fpm`, `lsphp` (LiteSpeed/CloudLinux), `php-cgi`, `ea-php*`, `alt-php*`, `sw-engine` e scripts CLI, excluindo o próprio PID do monitor.
+* **Resumo Agregado de Ofensores:** Calcula número de aparições (`HITS`), média de `%CPU`, pico de `%CPU` e pico de `RSS (MB)` ao longo de todos os snapshots, além de um **Resumo por Usuário** ideal para servidores compartilhados.
+* **Saída Estruturada (`-o table|json|csv`):** Tabela formatada no terminal, CSV compatível com RFC-4180 e JSON pronto para Zabbix, Prometheus, SIEMs ou abertura de chamados.
+* **Filtros e Ordenação Granulares:** Filtre por `--min-cpu`, `--min-mem`, `--user`, limite resultados com `--top` e ordene por `cpu`, `mem` ou `rss`.
+* **Alerta por Threshold (`--load-alert`):** Dispara e-mail (e retorna exit code `2`) somente quando o Load Average de 1 minuto atingir o limite definido — ideal para monitoramento via `cron`.
+* **Arquivos Temporários Seguros e Fallback de E-mail:** Usa `mktemp` com limpeza automática via `trap`, tenta `mail` -> `mailx` -> `sendmail` e preserva o relatório em disco caso nenhum MTA esteja disponível.
+* **Compatibilidade Legada:** Mantém suporte à sintaxe posicional antiga `./php-load-monitor.sh admin@exemplo.com 10`.
 
-### Informações monitoradas:
+## Pré-requisitos
 
-* **Load Average:** Médias de carga de 1, 5 e 15 minutos (via `uptime`).
-* **Memória RAM:** Uso total, usado e livre (via `free -m`).
+* `bash` 4.0+
+* `ps`, `awk`, `sort` (presentes por padrão no Linux)
+* `python3` (opcional; necessário apenas para `-o json`)
+* `mail` / `mailx` / `sendmail` (opcional; necessário apenas ao usar `-e, --email`)
 
-## 📋 Pré-requisitos
+## Uso e Opções
 
-* Sistema Operacional Linux/Unix.
-* PHP instalado (para execução via CLI ou servidor web).
-* Permissões de execução no script shell.
+```text
+PHP Load Monitor v2.0.0
+Universal PHP process, CPU, RAM and Load Average monitor for Linux/cPanel/DirectAdmin/Hestia.
 
-## 🔧 Instalação e Uso
+Usage:
+  php-load-monitor.sh [OPTIONS]
+  php-load-monitor.sh <EMAIL> [ITERATIONS]     (legacy positional syntax)
 
-1. **Baixe o arquivo no servidor:**
+Sampling Options:
+  -n, --iterations NUM    Number of snapshots to collect (default: 10)
+  -i, --interval SEC      Delay between snapshots in seconds, e.g. 0.5 or 2 (default: 1)
+  -c, --min-cpu PCT       Minimum %CPU threshold to include a process (default: 0.0)
+  -m, --min-mem PCT       Minimum %MEM threshold to include a process (default: 0.0)
+  -u, --user USER         Filter PHP processes by Linux/cPanel username
+  -t, --top NUM           Max processes shown in summary (default: 20, 0 = all)
+  -s, --sort FIELD        Sort order: cpu (default), mem, rss
 
-```bash
-curl -O https://raw.githubusercontent.com/sr00t3d/php-load-monitor/refs/heads/main/php-load-monitor.sh
+Output & Alerting Options:
+  -o, --output FORMAT     Output format: table (default), json, csv
+  -f, --file PATH         Save report to the specified file path
+  -e, --email ADDRESS     Send report to email via mail/mailx/sendmail
+      --load-alert NUM    Only send email (and exit code 2) if 1m load >= NUM
+      --snapshots         Include every raw snapshot block in table output
+  -q, --quiet             Suppress banner and progress messages
+      --no-color          Disable ANSI colors
+  -V, --version           Show version and exit
+  -h, --help              Show this help message and exit
 ```
 
-2. **Dê permissão de execução:**
+## Exemplos Práticos
 
+**Diagnóstico rápido no terminal (5 snapshots com intervalo de 0.5s):**
 ```bash
-chmod +x php-load-monitor.sh
+./php-load-monitor.sh -n 5 -i 0.5
 ```
 
-3. **Execute o script:**
-
+**Exportar JSON estruturado filtrando processos acima de 5% de CPU:**
 ```bash
-./php-load-monitor.sh EMAIL TOTAL 
+./php-load-monitor.sh -n 20 -i 1 -c 5.0 -o json > php-audit.json
 ```
 
-Exemplo:
-
+**Auditar um usuário cPanel específico ordenado por consumo de memória RSS:**
 ```bash
-----------------------------------------------------------------
- SERVER LOAD MONITOR - [hostname] [IP]
-----------------------------------------------------------------
-Current Server Load: 0.22, 0.21, 0.12
-Starting monitoring for 5 iterations...
-A report will be sent to: mail@domain.com
-Please wait...
-Monitoring complete. Email sent.
+./php-load-monitor.sh -n 10 -u cliente01 --sort rss
 ```
 
-Resultados:
-
+**Watchdog via cron enviando e-mail apenas se o Load 1m >= 4.0:**
 ```bash
-Report Date: Fri Feb 27 03:28:09 PM -03 2026
-Server: vps-e168e4b3.vps.ovh.ca (51.79.52.232)
----------------------------------------------------------------------------------------------
-PID      | USER         | SCRIPT/COMMAND                                     | %CPU  | TIME      
----------------------------------------------------------------------------------------------
-3753898  | wp-tool+     | /usr/bin/sw-engine /usr/local/cpanel/3rdparty/wp-t | 0.0   | 7-17:48:41
-3754428  | wp-tool+     | /usr/bin/sw-engine /usr/local/cpanel/3rdparty/wp-t | 0.0   | 7-17:48:33
-3754663  | root         | php-fpm: master process (/opt/cpanel/ea-php81/root | 0.0   | 7-17:48:28
-3998068  | root         | php-fpm: master process (/usr/local/cpanel/etc/php | 0.0   | 3-17:49:24
-- Snapshot 1 of 5
-3753898  | wp-tool+     | /usr/bin/sw-engine /usr/local/cpanel/3rdparty/wp-t | 0.0   | 7-17:48:42
-3754428  | wp-tool+     | /usr/bin/sw-engine /usr/local/cpanel/3rdparty/wp-t | 0.0   | 7-17:48:34
-3754663  | root         | php-fpm: master process (/opt/cpanel/ea-php81/root | 0.0   | 7-17:48:29
-3998068  | root         | php-fpm: master process (/usr/local/cpanel/etc/php | 0.0   | 3-17:49:25
-- Snapshot 2 of 5
-3753898  | wp-tool+     | /usr/bin/sw-engine /usr/local/cpanel/3rdparty/wp-t | 0.0   | 7-17:48:42
-3754428  | wp-tool+     | /usr/bin/sw-engine /usr/local/cpanel/3rdparty/wp-t | 0.0   | 7-17:48:34
-3754663  | root         | php-fpm: master process (/opt/cpanel/ea-php81/root | 0.0   | 7-17:48:29
-3998068  | root         | php-fpm: master process (/usr/local/cpanel/etc/php | 0.0   | 3-17:49:25
-- Snapshot 3 of 5
-3753898  | wp-tool+     | /usr/bin/sw-engine /usr/local/cpanel/3rdparty/wp-t | 0.0   | 7-17:48:43
-3754428  | wp-tool+     | /usr/bin/sw-engine /usr/local/cpanel/3rdparty/wp-t | 0.0   | 7-17:48:35
-3754663  | root         | php-fpm: master process (/opt/cpanel/ea-php81/root | 0.0   | 7-17:48:30
-3998068  | root         | php-fpm: master process (/usr/local/cpanel/etc/php | 0.0   | 3-17:49:26
-- Snapshot 4 of 5
-3753898  | wp-tool+     | /usr/bin/sw-engine /usr/local/cpanel/3rdparty/wp-t | 0.0   | 7-17:48:43
-3754428  | wp-tool+     | /usr/bin/sw-engine /usr/local/cpanel/3rdparty/wp-t | 0.0   | 7-17:48:35
-3754663  | root         | php-fpm: master process (/opt/cpanel/ea-php81/root | 0.0   | 7-17:48:30
-3998068  | root         | php-fpm: master process (/usr/local/cpanel/etc/php | 0.0   | 3-17:49:26
-- Snapshot 5 of 5
+./php-load-monitor.sh -n 15 -i 1 -e ops@exemplo.com.br --load-alert 4.0 -q
 ```
 
-## 🛠️ Estrutura do Código
+**Salvar snapshots brutos em CSV:**
+```bash
+./php-load-monitor.sh -n 10 -i 0.5 -o csv -f /tmp/php-load.csv
+```
 
-O script utiliza comandos nativos do Linux para obter os dados:
+## Tutorial Detalhado
 
-* `uptime`: Para capturar o estado de carga do processador.
-* `free -m`: Para detalhar o consumo de memória em Megabytes.
-* `awk`: Para filtrar e formatar a saída de texto.
+Confira o guia completo no blog: [**Verificar rapidamente LOAD do PHP**](https://perciocastelo.com.br/blog/fast-check-load-php.html)
 
-## ⚠️ Aviso Legal
+## Licença
 
-> [!WARNING]
-> Este software é fornecido "tal como está". Certifique-se sempre de ter permissão explícita antes de executar. O autor não se responsabiliza por qualquer uso indevido, consequências legais ou impacto nos dados causados ​​por esta ferramenta.
+Este projeto é distribuído sob a licença [Apache License 2.0](LICENSE).
 
-## 📚 Detailed Tutorial
-
-Para um guia completo, passo a passo, confira meu artigo completo:
-
-👉 [**Verificar rapidamente LOAD do PHP.**](https://perciocastelo.com.br/blog/fast-check-load-php.html)
-
-## Licença 📄
-
-Este projeto está licenciado sob a **GNU General Public License v3.0**. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+---
+Autor: **Percio Castelo**  
+Contato: [contato@perciocastelo.com.br](mailto:contato@perciocastelo.com.br)  
+Website: [https://perciocastelo.com.br](https://perciocastelo.com.br)
